@@ -2,7 +2,7 @@
 
 A small Spring Boot microservice that:
 
-1. Lets an admin/internal system manage a list of "sensitive words" (CRUD).
+1. System that manages a list of "sensitive words" (CRUD).
 2. Exposes a single business endpoint that takes a free-text message and returns it with every
    sensitive word starred out, e.g.
 
