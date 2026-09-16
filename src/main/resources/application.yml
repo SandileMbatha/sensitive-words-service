@@ -8,13 +8,13 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:sqlserver://localhost:1433;databaseName=sensitivewords;encrypt=false;trustServerCertificate=true}
     username: ${DB_USERNAME:sa}
-    password: ${DB_PASSWORD:YourStrong@Passw0rd}
+    password: ${DB_PASSWORD:Sandile@password1}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
   jpa:
     hibernate:
       # Flyway owns the schema - Hibernate only validates it matches the entities.
-      ddl-auto: validate
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -41,4 +41,4 @@ springdoc:
 
 logging:
   level:
-    com.sensitivewords: INFO
+    za.co.flash.sensitivewords: INFO

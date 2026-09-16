@@ -4,7 +4,7 @@ services:
     container_name: sensitive-words-mssql
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "YourStrong@Passw0rd"
+      MSSQL_SA_PASSWORD: "Sandile@password1"
     ports:
       - "1433:1433"
     healthcheck:
@@ -22,7 +22,7 @@ services:
       mssql:
         condition: service_healthy
     entrypoint: >
-      /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P "YourStrong@Passw0rd" -C
+      /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P "Sandile@password1" -C
       -Q "IF DB_ID('sensitivewords') IS NULL CREATE DATABASE sensitivewords;"
     restart: "no"
 
@@ -34,7 +34,7 @@ services:
     environment:
       DB_URL: "jdbc:sqlserver://mssql:1433;databaseName=sensitivewords;encrypt=false;trustServerCertificate=true"
       DB_USERNAME: sa
-      DB_PASSWORD: "YourStrong@Passw0rd"
+      DB_PASSWORD: "Sandile@password1"
     depends_on:
       mssql-init:
         condition: service_completed_successfully
