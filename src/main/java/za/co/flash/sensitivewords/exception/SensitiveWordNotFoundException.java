@@ -6,7 +6,7 @@ package za.co.flash.sensitivewords.exception;
  */
 public class SensitiveWordNotFoundException extends RuntimeException {
 
-    public SensitiveWordNotFoundException(Long id) {
-        super("Sensitive word with id " + id + " not found");
+    public SensitiveWordNotFoundException(String message) {
+        super(message);
     }
 }

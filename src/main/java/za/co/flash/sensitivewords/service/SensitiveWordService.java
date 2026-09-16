@@ -35,7 +35,7 @@ public class SensitiveWordService {
     public SensitiveWordResponse createSensitiveWord(SensitiveWordRequest request) {
         String word = request.word().trim();
         if (sensitiveWordRepository.existsByWordIgnoreCase(word)) {
-            throw new DuplicateSensitiveWordException(word);
+            throw new DuplicateSensitiveWordException("Sensitive word '" + word + "' already exists");
         }
 
         SensitiveWord saved = sensitiveWordRepository.save(SensitiveWord.builder().word(word).build());
@@ -79,7 +79,7 @@ public class SensitiveWordService {
         sensitiveWordRepository.findByWordIgnoreCase(word)
                 .filter(duplicateWord -> !duplicateWord.getId().equals(id))
                 .ifPresent(duplicateWord -> {
-                    throw new DuplicateSensitiveWordException(word);
+                    throw new DuplicateSensitiveWordException("Sensitive word '" + word + "' already exists");
                 });
 
         existing.setWord(word);
@@ -100,7 +100,7 @@ public class SensitiveWordService {
 
     private SensitiveWord findSensitiveWordOrThrow(Long id) {
         return sensitiveWordRepository.findById(id)
-                .orElseThrow(() -> new SensitiveWordNotFoundException(id));
+                .orElseThrow(() -> new SensitiveWordNotFoundException("Sensitive word with id " + id + " not found"));
     }
 
     private SensitiveWordResponse toSensitiveWordResponse(SensitiveWord entity) {

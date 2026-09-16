@@ -74,7 +74,8 @@ class SensitiveWordControllerTest {
     @Test
     void givenWordAlreadyExists_whenCreate_then409IsReturned() throws Exception {
         // given
-        when(sensitiveWordService.createSensitiveWord(any())).thenThrow(new DuplicateSensitiveWordException("DROP"));
+        when(sensitiveWordService.createSensitiveWord(any()))
+                .thenThrow(new DuplicateSensitiveWordException("Sensitive word 'DROP' already exists"));
 
         // when
         var result = mockMvc.perform(post("/api/v1/sensitive-words")
@@ -120,7 +121,8 @@ class SensitiveWordControllerTest {
     @Test
     void givenWordDoesNotExist_whenGetById_then404IsReturned() throws Exception {
         // given
-        when(sensitiveWordService.getSensitiveWordById(99L)).thenThrow(new SensitiveWordNotFoundException(99L));
+        when(sensitiveWordService.getSensitiveWordById(99L))
+                .thenThrow(new SensitiveWordNotFoundException("Sensitive word with id 99 not found"));
 
         // when
         var result = mockMvc.perform(get("/api/v1/sensitive-words/{id}", 99L));
@@ -160,7 +162,8 @@ class SensitiveWordControllerTest {
     @Test
     void givenWordDoesNotExist_whenDelete_then404IsReturned() throws Exception {
         // given
-        doThrow(new SensitiveWordNotFoundException(99L)).when(sensitiveWordService).deleteSensitiveWord(99L);
+        doThrow(new SensitiveWordNotFoundException("Sensitive word with id 99 not found"))
+                .when(sensitiveWordService).deleteSensitiveWord(99L);
 
         // when
         var result = mockMvc.perform(delete("/api/v1/sensitive-words/{id}", 99L));
