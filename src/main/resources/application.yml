@@ -42,3 +42,5 @@ springdoc:
 logging:
   level:
     za.co.flash.sensitivewords: INFO
+    org.springframework: INFO
+
