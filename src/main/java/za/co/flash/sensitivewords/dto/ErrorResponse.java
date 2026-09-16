@@ -12,16 +12,16 @@ public record ErrorResponse(
 
         LocalDateTime timestamp,
 
-        @Schema(example = "404")
-        int status,
+        @Schema(description = "The HTTP status code", example = "404")
+        int statusCode,
 
-        @Schema(example = "Not Found")
+        @Schema(description = "The HTTP status reason phrase", example = "Not Found")
         String error,
 
-        @Schema(example = "Sensitive word with id 99 not found")
+        @Schema(description = "Detail explaining what went wrong", example = "Sensitive word with id 99 not found")
         String message,
 
-        @Schema(example = "/api/v1/sensitive-words/99")
+        @Schema(description = "The request path that caused the error", example = "/api/v1/sensitive-words/99")
         String path
 ) {
 }
