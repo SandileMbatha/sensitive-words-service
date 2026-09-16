@@ -8,10 +8,13 @@ import za.co.flash.sensitivewords.exception.SensitiveWordNotFoundException;
 import za.co.flash.sensitivewords.repository.SensitiveWordRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * CRUD operations for the sensitive words that back {@link SanitizeService}.
@@ -33,12 +36,12 @@ public class SensitiveWordService {
      */
     @CacheEvict(value = SanitizeService.SENSITIVE_WORDS_CACHE, allEntries = true)
     public SensitiveWordResponse createSensitiveWord(SensitiveWordRequest request) {
-        String word = request.word().trim();
-        if (sensitiveWordRepository.existsByWordIgnoreCase(word)) {
-            throw new DuplicateSensitiveWordException("Sensitive word '" + word + "' already exists");
+        String name = request.name().trim();
+        if (sensitiveWordRepository.existsByNameIgnoreCase(name)) {
+            throw new DuplicateSensitiveWordException("Sensitive word '" + name + "' already exists");
         }
 
-        SensitiveWord saved = sensitiveWordRepository.save(SensitiveWord.builder().word(word).build());
+        SensitiveWord saved = sensitiveWordRepository.save(SensitiveWord.builder().name(name).build());
         return toSensitiveWordResponse(saved);
     }
 
@@ -47,19 +50,22 @@ public class SensitiveWordService {
      */
     @Transactional(readOnly = true)
     public List<SensitiveWordResponse> getAllSensitiveWords() {
-        return sensitiveWordRepository.findAllByOrderByWordAsc().stream()
+        return sensitiveWordRepository.findAllByOrderByNameAsc().stream()
                 .map(this::toSensitiveWordResponse)
                 .toList();
     }
 
     /**
-     * @param id id of the word to fetch
+     * @param name the name to fetch
      * @return the matching word
-     * @throws SensitiveWordNotFoundException if no word has that id
+     * @throws SensitiveWordNotFoundException if no word matches
      */
     @Transactional(readOnly = true)
-    public SensitiveWordResponse getSensitiveWordById(Long id) {
-        return toSensitiveWordResponse(findSensitiveWordOrThrow(id));
+    public SensitiveWordResponse getSensitiveWordByName(String name) {
+        String trimmedName = name.trim();
+        SensitiveWord entity = sensitiveWordRepository.findByNameIgnoreCase(trimmedName)
+                .orElseThrow(() -> new SensitiveWordNotFoundException("Sensitive word '" + trimmedName + "' not found"));
+        return toSensitiveWordResponse(entity);
     }
 
     /**
@@ -75,14 +81,14 @@ public class SensitiveWordService {
     public SensitiveWordResponse updateSensitiveWord(Long id, SensitiveWordRequest request) {
         SensitiveWord existing = findSensitiveWordOrThrow(id);
 
-        String word = request.word().trim();
-        sensitiveWordRepository.findByWordIgnoreCase(word)
+        String name = request.name().trim();
+        sensitiveWordRepository.findByNameIgnoreCase(name)
                 .filter(duplicateWord -> !duplicateWord.getId().equals(id))
                 .ifPresent(duplicateWord -> {
-                    throw new DuplicateSensitiveWordException("Sensitive word '" + word + "' already exists");
+                    throw new DuplicateSensitiveWordException("Sensitive word '" + name + "' already exists");
                 });
 
-        existing.setWord(word);
+        existing.setName(name);
         return toSensitiveWordResponse(sensitiveWordRepository.save(existing));
     }
 
@@ -103,10 +109,24 @@ public class SensitiveWordService {
                 .orElseThrow(() -> new SensitiveWordNotFoundException("Sensitive word with id " + id + " not found"));
     }
 
+    /**
+     * The word list rarely changes and is read on every sanitize call, so it is cached in memory.
+     * The cache is evicted by the create/update/delete methods above whenever the list changes.
+     *
+     * @return every sensitive word, upper-cased, for fast case-insensitive lookup
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(SanitizeService.SENSITIVE_WORDS_CACHE)
+    public Set<String> getSensitiveWordsUppercase() {
+        return sensitiveWordRepository.findAllNames().stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
+    }
+
     private SensitiveWordResponse toSensitiveWordResponse(SensitiveWord entity) {
         return new SensitiveWordResponse(
                 entity.getId(),
-                entity.getWord(),
+                entity.getName(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );

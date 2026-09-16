@@ -67,18 +67,18 @@ public class SensitiveWordController {
     }
 
     /**
-     * @param id id of the word to fetch
+     * @param name the name to look up
      * @return the matching word
-     * @throws za.co.flash.sensitivewords.exception.SensitiveWordNotFoundException if no word has that id
+     * @throws za.co.flash.sensitivewords.exception.SensitiveWordNotFoundException if no word matches
      */
-    @GetMapping("/{id}")
-    @Operation(summary = "Get a sensitive word by id")
+    @GetMapping("/name/{name}")
+    @Operation(summary = "Get a sensitive word by its name")
     @ApiResponse(responseCode = "200", description = "Word found")
     @ApiResponse(responseCode = "404", description = "Word not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    public ResponseEntity<SensitiveWordResponse> getSensitiveWordById(
-            @Parameter(description = "Id of the sensitive word", example = "1") @PathVariable Long id) {
-        return ResponseEntity.ok(sensitiveWordService.getSensitiveWordById(id));
+    public ResponseEntity<SensitiveWordResponse> getSensitiveWordByName(
+            @Parameter(description = "The word or phrase to look up", example = "SELECT") @PathVariable String name) {
+        return ResponseEntity.ok(sensitiveWordService.getSensitiveWordByName(name));
     }
 
     /**

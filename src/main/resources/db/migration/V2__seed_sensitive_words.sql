@@ -1,6 +1,6 @@
 -- Preloads the sensitive word list supplied with the assignment (sql_sensitive_list.txt).
 -- Word matching in SanitizeService is case-insensitive, so values are stored as supplied (upper case).
-INSERT INTO sensitive_words (word) VALUES
+INSERT INTO sensitive_words (name) VALUES
     ('ACTION'),
     ('ADD'),
     ('ALL'),

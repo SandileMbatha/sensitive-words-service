@@ -1,6 +1,5 @@
 package za.co.flash.sensitivewords.service;
 
-import za.co.flash.sensitivewords.repository.SensitiveWordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -17,7 +16,7 @@ import static org.mockito.Mockito.when;
 class SanitizeServiceTest {
 
     @Mock
-    private SensitiveWordRepository sensitiveWordRepository;
+    private SensitiveWordService sensitiveWordService;
 
     @InjectMocks
     private SanitizeService sanitizeService;
@@ -25,8 +24,8 @@ class SanitizeServiceTest {
     @BeforeEach
     void setUp() {
         // given: a small, known sensitive word list backing every test in this class
-        when(sensitiveWordRepository.findAllWords())
-                .thenReturn(List.of("SELECT", "DROP", "WHERE", "TABLE"));
+        when(sensitiveWordService.getSensitiveWordsUppercase())
+                .thenReturn(Set.of("SELECT", "DROP", "WHERE", "TABLE"));
     }
 
     @Test

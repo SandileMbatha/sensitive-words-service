@@ -34,8 +34,8 @@ public class SensitiveWord {
     private Long id;
 
     /** The word or phrase to star out; stored and compared case-insensitively. */
-    @Column(nullable = false, unique = true, length = 255)
-    private String word;
+    @Column(nullable = false, unique = true)
+    private String name;
 
     /** Set automatically by Hibernate when the row is first inserted. */
     @CreationTimestamp

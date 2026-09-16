@@ -14,7 +14,7 @@ public record SensitiveWordResponse(
         Long id,
 
         @Schema(example = "SELECT")
-        String word,
+        String name,
 
         LocalDateTime createdAt,
 

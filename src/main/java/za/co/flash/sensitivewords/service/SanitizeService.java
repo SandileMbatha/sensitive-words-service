@@ -1,14 +1,11 @@
 package za.co.flash.sensitivewords.service;
 
-import za.co.flash.sensitivewords.repository.SensitiveWordRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Sanitizes free-text messages by starring out any word that appears on the sensitive words list.
@@ -25,7 +22,7 @@ public class SanitizeService {
 
     private static final Pattern WORD_PATTERN = Pattern.compile("[A-Za-z0-9_]+");
 
-    private final SensitiveWordRepository sensitiveWordRepository;
+    private final SensitiveWordService sensitiveWordService;
 
     /**
      * Replaces every sensitive word in the message with asterisks of the same length. Matching is
@@ -36,7 +33,7 @@ public class SanitizeService {
      * @return the message with sensitive words starred out
      */
     public String sanitizeMessage(String message) {
-        Set<String> sensitiveWords = getSensitiveWordsUppercase();
+        Set<String> sensitiveWords = sensitiveWordService.getSensitiveWordsUppercase();
 
         Matcher matcher = WORD_PATTERN.matcher(message);
         StringBuilder sanitized = new StringBuilder();
@@ -51,18 +48,5 @@ public class SanitizeService {
         matcher.appendTail(sanitized);
 
         return sanitized.toString();
-    }
-
-    /**
-     * The word list rarely changes and is read on every sanitize call, so it is cached in memory.
-     * The cache is evicted by {@link SensitiveWordService} whenever a word is created, updated or deleted.
-     *
-     * @return every sensitive word, upper-cased, for fast case-insensitive lookup
-     */
-    @Cacheable(SENSITIVE_WORDS_CACHE)
-    public Set<String> getSensitiveWordsUppercase() {
-        return sensitiveWordRepository.findAllWords().stream()
-                .map(String::toUpperCase)
-                .collect(Collectors.toSet());
     }
 }

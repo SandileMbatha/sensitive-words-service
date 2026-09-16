@@ -13,26 +13,26 @@ import java.util.Optional;
 public interface SensitiveWordRepository extends JpaRepository<SensitiveWord, Long> {
 
     /**
-     * @param word word to look up
+     * @param name name to look up
      * @return true if a word with this value already exists (case-insensitive)
      */
-    boolean existsByWordIgnoreCase(String word);
+    boolean existsByNameIgnoreCase(String name);
 
     /**
-     * @param word word to look up
+     * @param name name to look up
      * @return the matching word, if any (case-insensitive)
      */
-    Optional<SensitiveWord> findByWordIgnoreCase(String word);
+    Optional<SensitiveWord> findByNameIgnoreCase(String name);
 
     /**
      * @return every word, ordered alphabetically - backs the CRUD "list" endpoint
      */
-    List<SensitiveWord> findAllByOrderByWordAsc();
+    List<SensitiveWord> findAllByOrderByNameAsc();
 
     /**
-     * @return just the {@code word} column for every row. Used by {@link za.co.flash.sensitivewords.service.SanitizeService},
+     * @return just the {@code name} column for every row. Used by {@link za.co.flash.sensitivewords.service.SanitizeService},
      * which only needs the text, not the full entity.
      */
-    @Query("select sensitiveWord.word from SensitiveWord sensitiveWord")
-    List<String> findAllWords();
+    @Query("select sensitiveWord.name from SensitiveWord sensitiveWord")
+    List<String> findAllNames();
 }

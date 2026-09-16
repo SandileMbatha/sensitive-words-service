@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +39,7 @@ class SensitiveWordServiceTest {
     @Test
     void givenWordDoesNotAlreadyExist_whenCreate_thenWordIsSavedAndReturned() {
         // given
-        when(sensitiveWordRepository.existsByWordIgnoreCase("DROP")).thenReturn(false);
+        when(sensitiveWordRepository.existsByNameIgnoreCase("DROP")).thenReturn(false);
         when(sensitiveWordRepository.save(any(SensitiveWord.class))).thenReturn(buildSensitiveWord(1L, "DROP"));
 
         // when
@@ -46,13 +47,13 @@ class SensitiveWordServiceTest {
 
         // then
         assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.word()).isEqualTo("DROP");
+        assertThat(response.name()).isEqualTo("DROP");
     }
 
     @Test
     void givenWordAlreadyExists_whenCreate_thenDuplicateSensitiveWordExceptionIsThrown() {
         // given
-        when(sensitiveWordRepository.existsByWordIgnoreCase("DROP")).thenReturn(true);
+        when(sensitiveWordRepository.existsByNameIgnoreCase("DROP")).thenReturn(true);
 
         // when / then
         assertThatThrownBy(() -> sensitiveWordService.createSensitiveWord(new SensitiveWordRequest("DROP")))
@@ -63,7 +64,7 @@ class SensitiveWordServiceTest {
     @Test
     void givenWordsExist_whenGetAll_thenEveryWordIsReturnedOrderedAlphabetically() {
         // given
-        when(sensitiveWordRepository.findAllByOrderByWordAsc())
+        when(sensitiveWordRepository.findAllByOrderByNameAsc())
                 .thenReturn(List.of(buildSensitiveWord(1L, "DROP"), buildSensitiveWord(2L, "SELECT")));
 
         // when
@@ -71,29 +72,42 @@ class SensitiveWordServiceTest {
 
         // then
         assertThat(allSensitiveWords).hasSize(2);
-        assertThat(allSensitiveWords.get(0).word()).isEqualTo("DROP");
-        assertThat(allSensitiveWords.get(1).word()).isEqualTo("SELECT");
+        assertThat(allSensitiveWords.get(0).name()).isEqualTo("DROP");
+        assertThat(allSensitiveWords.get(1).name()).isEqualTo("SELECT");
     }
 
     @Test
-    void givenWordExists_whenGetById_thenWordIsReturned() {
+    void givenWordExists_whenGetByName_thenWordIsReturned() {
         // given
-        when(sensitiveWordRepository.findById(1L)).thenReturn(Optional.of(buildSensitiveWord(1L, "DROP")));
+        when(sensitiveWordRepository.findByNameIgnoreCase("DROP")).thenReturn(Optional.of(buildSensitiveWord(1L, "DROP")));
 
         // when
-        SensitiveWordResponse response = sensitiveWordService.getSensitiveWordById(1L);
+        SensitiveWordResponse response = sensitiveWordService.getSensitiveWordByName("DROP");
 
         // then
-        assertThat(response.word()).isEqualTo("DROP");
+        assertThat(response.name()).isEqualTo("DROP");
     }
 
     @Test
-    void givenIdDoesNotExist_whenGetById_thenSensitiveWordNotFoundExceptionIsThrown() {
+    void givenNameHasLeadingAndTrailingSpaces_whenGetByName_thenSpacesAreTrimmedBeforeLookup() {
         // given
-        when(sensitiveWordRepository.findById(99L)).thenReturn(Optional.empty());
+        when(sensitiveWordRepository.findByNameIgnoreCase("DROP")).thenReturn(Optional.of(buildSensitiveWord(1L, "DROP")));
+
+        // when
+        SensitiveWordResponse response = sensitiveWordService.getSensitiveWordByName("  DROP  ");
+
+        // then
+        assertThat(response.name()).isEqualTo("DROP");
+        verify(sensitiveWordRepository).findByNameIgnoreCase("DROP");
+    }
+
+    @Test
+    void givenWordDoesNotExist_whenGetByName_thenSensitiveWordNotFoundExceptionIsThrown() {
+        // given
+        when(sensitiveWordRepository.findByNameIgnoreCase("MISSING")).thenReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> sensitiveWordService.getSensitiveWordById(99L))
+        assertThatThrownBy(() -> sensitiveWordService.getSensitiveWordByName("MISSING"))
                 .isInstanceOf(SensitiveWordNotFoundException.class);
     }
 
@@ -101,7 +115,7 @@ class SensitiveWordServiceTest {
     void givenNewValueIsNotTakenByAnotherRecord_whenUpdate_thenWordIsChanged() {
         // given
         when(sensitiveWordRepository.findById(1L)).thenReturn(Optional.of(buildSensitiveWord(1L, "DROP")));
-        when(sensitiveWordRepository.findByWordIgnoreCase("DELETE")).thenReturn(Optional.empty());
+        when(sensitiveWordRepository.findByNameIgnoreCase("DELETE")).thenReturn(Optional.empty());
         when(sensitiveWordRepository.save(any(SensitiveWord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -109,14 +123,14 @@ class SensitiveWordServiceTest {
         SensitiveWordResponse response = sensitiveWordService.updateSensitiveWord(1L, new SensitiveWordRequest("DELETE"));
 
         // then
-        assertThat(response.word()).isEqualTo("DELETE");
+        assertThat(response.name()).isEqualTo("DELETE");
     }
 
     @Test
     void givenNewValueBelongsToAnotherRecord_whenUpdate_thenDuplicateSensitiveWordExceptionIsThrown() {
         // given
         when(sensitiveWordRepository.findById(1L)).thenReturn(Optional.of(buildSensitiveWord(1L, "DROP")));
-        when(sensitiveWordRepository.findByWordIgnoreCase("SELECT"))
+        when(sensitiveWordRepository.findByNameIgnoreCase("SELECT"))
                 .thenReturn(Optional.of(buildSensitiveWord(2L, "SELECT")));
 
         // when / then
@@ -161,10 +175,22 @@ class SensitiveWordServiceTest {
         verify(sensitiveWordRepository, never()).delete(any());
     }
 
-    private SensitiveWord buildSensitiveWord(Long id, String word) {
+    @Test
+    void givenWordsExist_whenGetSensitiveWordsUppercase_thenEveryNameIsReturnedUppercased() {
+        // given
+        when(sensitiveWordRepository.findAllNames()).thenReturn(List.of("select", "Drop"));
+
+        // when
+        Set<String> uppercaseWords = sensitiveWordService.getSensitiveWordsUppercase();
+
+        // then
+        assertThat(uppercaseWords).containsExactlyInAnyOrder("SELECT", "DROP");
+    }
+
+    private SensitiveWord buildSensitiveWord(Long id, String name) {
         return SensitiveWord.builder()
                 .id(id)
-                .word(word)
+                .name(name)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

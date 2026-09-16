@@ -11,6 +11,25 @@ A small Spring Boot microservice that:
    Response: "You need to ****** a string"
    ```
 
+## How to run
+
+Requires JDK 21 and Docker.
+
+Build the jar first:
+
+```
+mvn clean package -DskipTests   # requires JDK 21
+```
+
+Then start the database and the service:
+
+```
+docker compose up --build
+```
+
+The service will be available at http://localhost:8080. Swagger UI is at
+http://localhost:8080/swagger-ui/index.html.
+
 ## What would you do to enhance performance of your project?
 
 - The list of sensitive words is kept in memory (cached) instead of reading it from the database

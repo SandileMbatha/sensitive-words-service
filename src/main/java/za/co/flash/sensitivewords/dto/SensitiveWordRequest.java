@@ -11,8 +11,8 @@ import jakarta.validation.constraints.Size;
 public record SensitiveWordRequest(
 
         @Schema(description = "The word or phrase to sanitize", example = "SELECT")
-        @NotBlank(message = "word must not be blank")
-        @Size(max = 255, message = "word must be at most 255 characters")
-        String word
+        @NotBlank(message = "name must not be blank")
+        @Size(max = 255, message = "name must be at most 255 characters")
+        String name
 ) {
 }

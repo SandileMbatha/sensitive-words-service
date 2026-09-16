@@ -2,15 +2,11 @@ package za.co.flash.sensitivewords.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDateTime;
-
 /**
  * Standard error response returned for all failed requests.
  */
 @Schema(description = "Standard error response returned for all failed requests")
 public record ErrorResponse(
-
-        LocalDateTime timestamp,
 
         @Schema(description = "The HTTP status code", example = "404")
         int statusCode,

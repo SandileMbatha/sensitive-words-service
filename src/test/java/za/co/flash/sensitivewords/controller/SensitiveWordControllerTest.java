@@ -54,7 +54,7 @@ class SensitiveWordControllerTest {
         // then
         result.andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.word").value("DROP"));
+                .andExpect(jsonPath("$.name").value("DROP"));
     }
 
     @Test
@@ -101,31 +101,31 @@ class SensitiveWordControllerTest {
         // then
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].word").value("DROP"));
+                .andExpect(jsonPath("$[0].name").value("DROP"));
     }
 
     @Test
-    void givenWordExists_whenGetById_then200IsReturnedWithTheWord() throws Exception {
+    void givenWordExists_whenGetByName_then200IsReturnedWithTheWord() throws Exception {
         // given
-        when(sensitiveWordService.getSensitiveWordById(1L))
+        when(sensitiveWordService.getSensitiveWordByName("DROP"))
                 .thenReturn(new SensitiveWordResponse(1L, "DROP", LocalDateTime.now(), LocalDateTime.now()));
 
         // when
-        var result = mockMvc.perform(get("/api/v1/sensitive-words/{id}", 1L));
+        var result = mockMvc.perform(get("/api/v1/sensitive-words/name/{name}", "DROP"));
 
         // then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.word").value("DROP"));
+                .andExpect(jsonPath("$.name").value("DROP"));
     }
 
     @Test
-    void givenWordDoesNotExist_whenGetById_then404IsReturned() throws Exception {
+    void givenWordDoesNotExist_whenGetByName_then404IsReturned() throws Exception {
         // given
-        when(sensitiveWordService.getSensitiveWordById(99L))
-                .thenThrow(new SensitiveWordNotFoundException("Sensitive word with id 99 not found"));
+        when(sensitiveWordService.getSensitiveWordByName("MISSING"))
+                .thenThrow(new SensitiveWordNotFoundException("Sensitive word 'MISSING' not found"));
 
         // when
-        var result = mockMvc.perform(get("/api/v1/sensitive-words/{id}", 99L));
+        var result = mockMvc.perform(get("/api/v1/sensitive-words/name/{name}", "MISSING"));
 
         // then
         result.andExpect(status().isNotFound());
@@ -144,7 +144,7 @@ class SensitiveWordControllerTest {
 
         // then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.word").value("DELETE"));
+                .andExpect(jsonPath("$.name").value("DELETE"));
     }
 
     @Test
