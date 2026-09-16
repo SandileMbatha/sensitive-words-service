@@ -1,5 +1,6 @@
 package za.co.flash.sensitivewords.service;
 
+import lombok.extern.slf4j.Slf4j;
 import za.co.flash.sensitivewords.dto.SensitiveWordRequest;
 import za.co.flash.sensitivewords.dto.SensitiveWordResponse;
 import za.co.flash.sensitivewords.entity.SensitiveWord;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class SensitiveWordService {
 
     private final SensitiveWordRepository sensitiveWordRepository;
@@ -38,6 +40,7 @@ public class SensitiveWordService {
     public SensitiveWordResponse createSensitiveWord(SensitiveWordRequest request) {
         String name = request.name().trim();
         if (sensitiveWordRepository.existsByNameIgnoreCase(name)) {
+            log.debug("Attempted to create duplicate sensitive word: {}", name);
             throw new DuplicateSensitiveWordException("Sensitive word '" + name + "' already exists");
         }
 
@@ -85,6 +88,7 @@ public class SensitiveWordService {
         sensitiveWordRepository.findByNameIgnoreCase(name)
                 .filter(duplicateWord -> !duplicateWord.getId().equals(id))
                 .ifPresent(duplicateWord -> {
+                    log.debug("Attempted to update sensitive word to a duplicate value: {}", name);
                     throw new DuplicateSensitiveWordException("Sensitive word '" + name + "' already exists");
                 });
 

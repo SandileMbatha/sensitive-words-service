@@ -1,5 +1,6 @@
 package za.co.flash.sensitivewords.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import za.co.flash.sensitivewords.dto.ErrorResponse;
 import za.co.flash.sensitivewords.dto.SanitizeRequest;
 import za.co.flash.sensitivewords.dto.SanitizeResponse;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/sanitize")
 @RequiredArgsConstructor
 @Tag(name = "Sanitize", description = "External API used to star out sensitive words in a message")
+@Slf4j
 public class SanitizeController {
 
     private final SanitizeService sanitizeService;
@@ -41,6 +43,7 @@ public class SanitizeController {
     @ApiResponse(responseCode = "400", description = "Validation failure",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<SanitizeResponse> sanitizeMessage(@Valid @RequestBody SanitizeRequest request) {
+        log.info("Received request to sanitize message: {}", request.message());
         String sanitizedMessage = sanitizeService.sanitizeMessage(request.message());
         return ResponseEntity.ok(new SanitizeResponse(request.message(), sanitizedMessage));
     }
