@@ -1,6 +1,7 @@
 package za.co.flash.sensitivewords.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SanitizeService {
 
     public static final String SENSITIVE_WORDS_CACHE = "sensitiveWords";
@@ -38,14 +40,19 @@ public class SanitizeService {
         Matcher matcher = WORD_PATTERN.matcher(message);
         StringBuilder sanitized = new StringBuilder();
 
+        int redactedCount = 0;
         while (matcher.find()) {
             String token = matcher.group();
-            String replacement = sensitiveWords.contains(token.toUpperCase())
-                    ? "*".repeat(token.length())
-                    : token;
+            boolean isSensitive = sensitiveWords.contains(token.toUpperCase());
+            if (isSensitive) {
+                redactedCount++;
+            }
+            String replacement = isSensitive ? "*".repeat(token.length()) : token;
             matcher.appendReplacement(sanitized, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(sanitized);
+
+        log.debug("Sanitized message of length {} - {} word(s) redacted", message.length(), redactedCount);
 
         return sanitized.toString();
     }

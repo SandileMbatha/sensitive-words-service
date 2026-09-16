@@ -45,6 +45,7 @@ public class SensitiveWordService {
         }
 
         SensitiveWord saved = sensitiveWordRepository.save(SensitiveWord.builder().name(name).build());
+        log.info("Created sensitive word '{}' (id={})", saved.getName(), saved.getId());
         return toSensitiveWordResponse(saved);
     }
 
@@ -93,7 +94,9 @@ public class SensitiveWordService {
                 });
 
         existing.setName(name);
-        return toSensitiveWordResponse(sensitiveWordRepository.save(existing));
+        SensitiveWordResponse updated = toSensitiveWordResponse(sensitiveWordRepository.save(existing));
+        log.info("Updated sensitive word (id={}) to '{}'", id, name);
+        return updated;
     }
 
     /**
@@ -106,6 +109,7 @@ public class SensitiveWordService {
     public void deleteSensitiveWord(Long id) {
         SensitiveWord existing = findSensitiveWordOrThrow(id);
         sensitiveWordRepository.delete(existing);
+        log.info("Deleted sensitive word '{}' (id={})", existing.getName(), id);
     }
 
     private SensitiveWord findSensitiveWordOrThrow(Long id) {

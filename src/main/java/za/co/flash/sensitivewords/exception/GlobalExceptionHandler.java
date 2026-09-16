@@ -2,6 +2,7 @@ package za.co.flash.sensitivewords.exception;
 
 import za.co.flash.sensitivewords.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
  * Central place that turns exceptions into consistent {@link ErrorResponse} responses.
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     /**
@@ -22,6 +24,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(SensitiveWordNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleSensitiveWordNotFound(SensitiveWordNotFoundException notFoundException, HttpServletRequest request) {
+        log.warn("Not found: {}", notFoundException.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, notFoundException.getMessage(), request);
     }
 
@@ -30,6 +33,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DuplicateSensitiveWordException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateSensitiveWord(DuplicateSensitiveWordException duplicateException, HttpServletRequest request) {
+        log.warn("Conflict: {}", duplicateException.getMessage());
         return buildErrorResponse(HttpStatus.CONFLICT, duplicateException.getMessage(), request);
     }
 
@@ -41,6 +45,7 @@ public class GlobalExceptionHandler {
         String message = validationException.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining(", "));
+        log.warn("Validation failed on {} {}: {}", request.getMethod(), request.getRequestURI(), message);
         return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -50,17 +55,20 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException methodNotSupportedException, HttpServletRequest request) {
+        log.warn("Method not allowed: {} {}", request.getMethod(), request.getRequestURI());
         return buildErrorResponse(HttpStatus.METHOD_NOT_ALLOWED, methodNotSupportedException.getMessage(), request);
     }
 
     /**
      * Fallback for anything unexpected, so callers always get a JSON {@link ErrorResponse} instead of a raw
-     * stack trace. The real exception is left to the server logs rather than exposed to the caller.
+     * stack trace. The real exception (with its stack trace) is logged at error level so it can be
+     * investigated, rather than exposed to the caller.
      *
      * @return 500 with a generic message
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpectedError(HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleUnexpectedError(Exception exception, HttpServletRequest request) {
+        log.error("Unexpected error on {} {}", request.getMethod(), request.getRequestURI(), exception);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request);
     }
 

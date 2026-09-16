@@ -123,6 +123,14 @@
                         </exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <!-- Exposes build version/time on /actuator/info -->
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <!-- Runs *IT.java classes (needs Docker for Testcontainers) during `mvn verify`,
                  kept separate from the fast, Docker-free unit tests that `mvn test` runs. -->
